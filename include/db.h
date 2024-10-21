@@ -1,29 +1,27 @@
 #ifndef DB_H
 #define DB_H
 
-extern db_table *tables;  
-extern int num_tables;    
-
-
 typedef struct {
-    char clé[100];     
-    char valeur[100];  
+    char *clé;
+    char *valeur;
 } db_entry;
 
 
 typedef struct {
-    db_entry *entries;  
-    int num_entries;   
+    db_entry *entries;
+    int num_entries;
 } db_row;
 
 typedef struct {
-    char name[100];   
-    db_row *rows;      
-    int num_rows;     
+    char name[100];
+    db_row *rows;
+    int num_rows;
 } db_table;
 
-extern db_table *tables;  
-extern int num_tables;    
+extern db_table *tables; 
+extern int num_tables;
+
+
 
 void db_init();
 void db_create_table(const char *table_name);
@@ -36,4 +34,8 @@ void db_save_to_disk();
 void db_load_from_disk();
 void db_close();
 
-#endif 
+void db_create_table();
+void db_update();
+void db_delete_from();
+
+#endif

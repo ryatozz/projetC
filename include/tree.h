@@ -15,16 +15,12 @@ void tree_insert(db_entry *entry);
 db_entry *tree_search(char *clé);
 void tree_init();
 void tree_insert_node(tree_node *node, tree_node *new_node);
-
-
 tree_node *tree_delete_node(tree_node *node, char *clé);
-
-
 db_entry *tree_search_node(tree_node *node, char *clé);
 void tree_free();
 void tree_free_node(tree_node *node);
-
 void tree_print_in_order(tree_node *node); 
 void tree_delete(char *clé);
+void tree_load_entry(char *line);
 
 #endif
