@@ -81,13 +81,13 @@ void tree_delete(char *clé) {
 
 tree_node *tree_delete_node(tree_node *node, char *clé) {
     if (node == NULL) {
-        return NULL; 
+        return NULL;  
     }
 
     if (strcmp(clé, node->entry->clé) < 0) {
-        node->gauche = tree_delete_node(node->gauche, clé);
+        node->gauche = tree_delete_node(node->gauche, clé);  
     } else if (strcmp(clé, node->entry->clé) > 0) {
-        node->droite = tree_delete_node(node->droite, clé);
+        node->droite = tree_delete_node(node->droite, clé);  
     } else {
 
         if (node->gauche == NULL) {
@@ -96,7 +96,7 @@ tree_node *tree_delete_node(tree_node *node, char *clé) {
             free(node->entry->valeur);
             free(node->entry);
             free(node);
-            return temp;
+            return temp; 
         } else if (node->droite == NULL) {
             tree_node *temp = node->gauche;
             free(node->entry->clé);
@@ -106,19 +106,23 @@ tree_node *tree_delete_node(tree_node *node, char *clé) {
             return temp;
         }
 
+
         tree_node *successeur = node->droite;
         while (successeur && successeur->gauche != NULL) {
             successeur = successeur->gauche;
         }
 
+
         free(node->entry->clé);
         free(node->entry->valeur);
         node->entry->clé = strdup(successeur->entry->clé);
         node->entry->valeur = strdup(successeur->entry->valeur);
+
+
         node->droite = tree_delete_node(node->droite, successeur->entry->clé);
     }
 
-    return node;
+    return node; 
 }
 
 void tree_save_in_order(tree_node *node, FILE *file) {
@@ -136,14 +140,16 @@ void tree_save_in_order(tree_node *node, FILE *file) {
 void tree_load_entry(char *line) {
     char *clé = strtok(line, "=");
     char *valeur = strtok(NULL, "\n");
+
     if (clé != NULL && valeur != NULL) {
         db_entry *entry = malloc(sizeof(db_entry));
         entry->clé = strdup(clé);
         entry->valeur = strdup(valeur);
+
         tree_insert(entry);  
-        db_save_to_disk("database.txt");
     }
 }
+
 
 void tree_print_in_order(tree_node *node) {
     if (node == NULL) {
