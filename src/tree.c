@@ -5,7 +5,6 @@
 
 tree_node *tree_root = NULL; 
 
-
 void tree_init() {
     tree_root = NULL;
 }
@@ -13,8 +12,8 @@ void tree_init() {
 void tree_insert(db_entry *entry) {
     tree_node *node = malloc(sizeof(tree_node));
     node->entry = entry;
-    node->gauche = NULL;
-    node->droite = NULL;
+    node->left = NULL;
+    node->right = NULL;
 
     if (tree_root == NULL) {
         tree_root = node;
@@ -24,34 +23,34 @@ void tree_insert(db_entry *entry) {
 }
 
 void tree_insert_node(tree_node *node, tree_node *new_node) {
-    if (strcmp(new_node->entry->clé, node->entry->clé) < 0) {
-        if (node->gauche == NULL) {
-            node->gauche = new_node;
+    if (strcmp(new_node->entry->key, node->entry->key) < 0) {
+        if (node->left == NULL) {
+            node->left = new_node;
         } else {
-            tree_insert_node(node->gauche, new_node);
+            tree_insert_node(node->left, new_node);
         }
     } else {
-        if (node->droite == NULL) {
-            node->droite = new_node;
+        if (node->right == NULL) {
+            node->right = new_node;
         } else {
-            tree_insert_node(node->droite, new_node);
+            tree_insert_node(node->right, new_node);
         }
     }
 }
 
-db_entry *tree_search(char *clé) {
-    return tree_search_node(tree_root, clé);
+db_entry *tree_search(char *key) {
+    return tree_search_node(tree_root, key);
 }
 
-db_entry *tree_search_node(tree_node *node, char *clé) {
+db_entry *tree_search_node(tree_node *node, char *key) {
     if (node == NULL) {
         return NULL;
-    } else if (strcmp(clé, node->entry->clé) == 0) {
+    } else if (strcmp(key, node->entry->key) == 0) {
         return node->entry;
-    } else if (strcmp(clé, node->entry->clé) < 0) {
-        return tree_search_node(node->gauche, clé);
+    } else if (strcmp(key, node->entry->key) < 0) {
+        return tree_search_node(node->left, key);
     } else {
-        return tree_search_node(node->droite, clé);
+        return tree_search_node(node->right, key);
     }
 }
 
@@ -62,64 +61,60 @@ void tree_free() {
 
 void tree_free_node(tree_node *node) {
     if (node != NULL) {
-        if (node->gauche != NULL) {
-            tree_free_node(node->gauche);
+        if (node->left != NULL) {
+            tree_free_node(node->left);
         }
-        if (node->droite != NULL) {
-            tree_free_node(node->droite);
+        if (node->right != NULL) {
+            tree_free_node(node->right);
         }
-        free(node->entry->clé);
-        free(node->entry->valeur);
+        free(node->entry->key);  
+        free(node->entry->value); 
         free(node->entry);
         free(node);
     }
 }
 
-void tree_delete(char *clé) {
-    tree_root = tree_delete_node(tree_root, clé);
+void tree_delete(char *key) {
+    tree_root = tree_delete_node(tree_root, key);
 }
 
-tree_node *tree_delete_node(tree_node *node, char *clé) {
+tree_node *tree_delete_node(tree_node *node, char *key) {
     if (node == NULL) {
         return NULL;  
     }
 
-    if (strcmp(clé, node->entry->clé) < 0) {
-        node->gauche = tree_delete_node(node->gauche, clé);  
-    } else if (strcmp(clé, node->entry->clé) > 0) {
-        node->droite = tree_delete_node(node->droite, clé);  
+    if (strcmp(key, node->entry->key) < 0) {
+        node->left = tree_delete_node(node->left, key);  
+    } else if (strcmp(key, node->entry->key) > 0) {
+        node->right = tree_delete_node(node->right, key);  
     } else {
-
-        if (node->gauche == NULL) {
-            tree_node *temp = node->droite;
-            free(node->entry->clé);
-            free(node->entry->valeur);
+        if (node->left == NULL) {
+            tree_node *temp = node->right;
+            free(node->entry->key); 
+            free(node->entry->value); 
             free(node->entry);
             free(node);
             return temp; 
-        } else if (node->droite == NULL) {
-            tree_node *temp = node->gauche;
-            free(node->entry->clé);
-            free(node->entry->valeur);
+        } else if (node->right == NULL) {
+            tree_node *temp = node->left;
+            free(node->entry->key); 
+            free(node->entry->value); 
             free(node->entry);
             free(node);
             return temp;
         }
 
-
-        tree_node *successeur = node->droite;
-        while (successeur && successeur->gauche != NULL) {
-            successeur = successeur->gauche;
+        tree_node *successeur = node->right;
+        while (successeur && successeur->left != NULL) {
+            successeur = successeur->left;
         }
 
+        free(node->entry->key);
+        free(node->entry->value); 
+        node->entry->key = strdup(successeur->entry->key); 
+        node->entry->value = strdup(successeur->entry->value); 
 
-        free(node->entry->clé);
-        free(node->entry->valeur);
-        node->entry->clé = strdup(successeur->entry->clé);
-        node->entry->valeur = strdup(successeur->entry->valeur);
-
-
-        node->droite = tree_delete_node(node->droite, successeur->entry->clé);
+        node->right = tree_delete_node(node->right, successeur->entry->key);
     }
 
     return node; 
@@ -130,33 +125,30 @@ void tree_save_in_order(tree_node *node, FILE *file) {
         return;
     }
 
-    tree_save_in_order(node->gauche, file);  
-    fprintf(file, "%s,%s\n", node->entry->clé, node->entry->valeur);  
-    tree_save_in_order(node->droite, file); 
+    tree_save_in_order(node->left, file);
+    fprintf(file, "%s,%s\n", node->entry->key, node->entry->value);
+    tree_save_in_order(node->right, file);
 }
 
-
-
 void tree_load_entry(char *line) {
-    char *clé = strtok(line, "=");
-    char *valeur = strtok(NULL, "\n");
+    char *key = strtok(line, "=");
+    char *value = strtok(NULL, "\n");
 
-    if (clé != NULL && valeur != NULL) {
+    if (key != NULL && value != NULL) {
         db_entry *entry = malloc(sizeof(db_entry));
-        entry->clé = strdup(clé);
-        entry->valeur = strdup(valeur);
+        entry->key = strdup(key);   
+        entry->value = strdup(value); 
 
         tree_insert(entry);  
     }
 }
-
 
 void tree_print_in_order(tree_node *node) {
     if (node == NULL) {
         return;
     }
 
-    tree_print_in_order(node->gauche);  
-    printf("Clé: %s, Valeur: %s\n", node->entry->clé, node->entry->valeur);
-    tree_print_in_order(node->droite); 
+    tree_print_in_order(node->left);  
+    printf("Clé: %s, Valeur: %s\n", node->entry->key, node->entry->value); 
+    tree_print_in_order(node->right); 
 }

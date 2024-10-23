@@ -4,153 +4,115 @@
 #include "../include/db.h"
 
 
-void ajouter_entree();
-void modifier_entree();
-void supprimer_entree();
-void afficher_entree();
+void ajouter_entree(const char *table, const char *key, const char *value);
+void modifier_entree(const char *table, const char *key, const char *new_value);
+void supprimer_entree(const char *table, const char *key);
+void afficher_entree(const char *table);
+void afficher_tables();
+void sauvegarder_en_txt(const char *fichier);
+void charger_depuis_txt(const char *fichier);
 void initialiser_db();
-db_row* db_select_all(const char *table_name); 
-db_table* db_get_table(const char *table_name);
+db_row* db_select_all(const char *table_name);
 
-extern db_table *tables;  
-extern int num_tables;    
+extern db_table *tables;
+extern int num_tables;
+
+void execute_command(const char *command);
+
 int main() {
-    db_init(); 
+    db_init();  
+    charger_depuis_txt("database.txt"); 
 
-    initialiser_db();
+    printf("Bienvenue dans votre base de données personnalisée.\n");
+    printf("Vous pouvez saisir des commandes comme en SQL.\n");
+    printf("Exemples de commandes :\n");
+    printf("- CREATE TABLE table_name\n");
+    printf("- INSERT INTO table_name (key, value)\n");
+    printf("- DELETE FROM table_name WHERE key='your_key'\n");
+    printf("- UPDATE table_name SET key='new_value' WHERE key='your_key'\n");
+    printf("- SELECT * FROM table_name\n");
+    printf("- SHOW pour afficher toutes les tables\n");
+    printf("- SAVE pour sauvegarder la base de données\n");
+    printf("- LOAD pour charger la base de données\n");
+    printf("- EXIT pour quitter\n");
 
-    int choix;
-    do {
-        printf("\nMenu:\n");
-        printf("1. Ajouter une entrée\n");
-        printf("2. Modifier une entrée\n");
-        printf("3. Supprimer une entrée\n");
-        printf("4. Afficher une entrée\n");
-        printf("5. Sauvegarder sur disque\n");
-        printf("6. Charger depuis disque\n");
-        printf("7. Quitter\n");
-        printf("Entrez votre choix: ");
-        scanf("%d", &choix);
-        getchar(); 
+    char command[1024];
+    while (1) {
+        printf("\nEntrez votre commande: ");
+        fgets(command, sizeof(command), stdin);
+        command[strcspn(command, "\n")] = 0; 
 
-        switch (choix) {
-            case 1:
-                ajouter_entree();
-                break;
-            case 2:
-                modifier_entree();
-                break;
-            case 3:
-                supprimer_entree();
-                break;
-            case 4:
-                afficher_entree();
-                break;
-            case 5:
-                db_save_to_disk();
-                printf("Base de données sauvegardée.\n");
-                break;
-            case 6:
-                db_load_from_disk();
-                printf("Base de données chargée.\n");
-                break;
-            case 7:
-                printf("Fermeture de la base de données.\n");
-                db_close();
-                break;
-            default:
-                printf("Choix invalide, veuillez réessayer.\n");
+        if (strcasecmp(command, "EXIT") == 0) {
+            printf("Fermeture de la base de données.\n");
+            sauvegarder_en_txt("database.txt"); 
+            db_close();  
+            break;
         }
-    } while (choix != 7);
 
-    db_close(); 
+        execute_command(command);
+    }
+
     return 0;
 }
 
-void initialiser_db() {
-    char table[100];
-    printf("Entrez le nom de la table à créer : ");
-    fgets(table, sizeof(table), stdin);
-    table[strcspn(table, "\n")] = 0;
+void execute_command(const char *command) {
+    char table[100], key[100], value[100], new_value[100];
 
-    db_create_table(table);
-    printf("Table '%s' créée avec succès.\n", table);
+    if (sscanf(command, "CREATE TABLE %s", table) == 1) {
+        db_create_table(table);
+        printf("Table '%s' créée avec succès.\n", table);
+    }
+    else if (sscanf(command, "INSERT INTO %s (%[^,], %[^)])", table, key, value) == 3) {
+
+        ajouter_entree(table, key, value);
+    }
+    else if (sscanf(command, "DELETE FROM %s WHERE key='%[^']'", table, key) == 2) {
+        supprimer_entree(table, key);
+    }
+    else if (sscanf(command, "UPDATE %s SET key='%[^']' WHERE key='%[^']'", table, new_value, key) == 3) {
+        modifier_entree(table, key, new_value);
+    }
+    else if (sscanf(command, "SELECT * FROM %s", table) == 1) {
+        afficher_entree(table);
+    }
+    else if (strcasecmp(command, "SHOW") == 0) {
+        afficher_tables(); 
+    }
+    else if (strcasecmp(command, "SAVE") == 0) {
+        sauvegarder_en_txt("database.txt");  
+    }
+    else if (strcasecmp(command, "LOAD") == 0) {
+        charger_depuis_txt("database.txt");  
+    }
+    else {
+        printf("Commande non reconnue. Veuillez réessayer.\n");
+    }
 }
 
-void ajouter_entree() {
-    char table[100];
-    char clé[100];
-    char valeur[100];
-
-    printf("Entrez le nom de la table: ");
-    fgets(table, sizeof(table), stdin);
-    table[strcspn(table, "\n")] = 0;
-
-    printf("Entrez la clé: ");
-    fgets(clé, sizeof(clé), stdin);
-    clé[strcspn(clé, "\n")] = 0;
-
-    printf("Entrez la valeur: ");
-    fgets(valeur, sizeof(valeur), stdin);
-    valeur[strcspn(valeur, "\n")] = 0;
-
-    db_insert_into(table, clé, valeur);
-    printf("Entrée ajoutée avec succès.\n");
+void ajouter_entree(const char *table, const char *key, const char *value) {
+    db_insert_into(table, key, value);
+    printf("Entrée (clé : %s, valeur : %s) ajoutée avec succès dans la table '%s'.\n", key, value, table);
 }
 
-void modifier_entree() {
-    char table[100];
-    char clé[100];
-    char nouvelle_valeur[100];
-
-    printf("Entrez le nom de la table: ");
-    fgets(table, sizeof(table), stdin);
-    table[strcspn(table, "\n")] = 0;
-
-    printf("Entrez la clé à modifier: ");
-    fgets(clé, sizeof(clé), stdin);
-    clé[strcspn(clé, "\n")] = 0;
-
-    printf("Entrez la nouvelle valeur: ");
-    fgets(nouvelle_valeur, sizeof(nouvelle_valeur), stdin);
-    nouvelle_valeur[strcspn(nouvelle_valeur, "\n")] = 0;
-
-    db_update(table, clé, nouvelle_valeur);
-    printf("Entrée modifiée avec succès.\n");
+void modifier_entree(const char *table, const char *key, const char *new_value) {
+    db_update(table, key, new_value);
+    printf("Entrée avec clé '%s' modifiée avec succès dans la table '%s'. Nouvelle valeur : %s\n", key, table, new_value);
 }
 
-void supprimer_entree() {
-    char table[100];
-    char clé[100];
-
-    printf("Entrez le nom de la table: ");
-    fgets(table, sizeof(table), stdin);
-    table[strcspn(table, "\n")] = 0;
-
-    printf("Entrez la clé à supprimer: ");
-    fgets(clé, sizeof(clé), stdin);
-    clé[strcspn(clé, "\n")] = 0;
-
-    db_delete_from(table, clé);
-    printf("Entrée supprimée avec succès.\n");
+void supprimer_entree(const char *table, const char *key) {
+    db_delete_from(table, key);
+    printf("Entrée avec clé '%s' supprimée de la table '%s'.\n", key, table);
 }
 
-
-void afficher_entree() {
-    char table[100];
-
-    printf("Entrez le nom de la table: ");
-    fgets(table, sizeof(table), stdin);
-    table[strcspn(table, "\n")] = 0;
-
-    db_row *rows = db_select_all(table); 
+void afficher_entree(const char *table) {
+    db_row *rows = db_select_all(table);
     if (rows == NULL) {
         printf("Aucune entrée trouvée pour la table : %s\n", table);
         return;
     }
 
     for (int i = 0; i < rows->num_entries; i++) {
-        printf("Clé : %s, Valeur : %s\n", rows->entries[i].clé, rows->entries[i].valeur);
+        printf("Clé : %s, Valeur : %s\n", rows->entries[i].key, rows->entries[i].value);
     }
 
     free(rows->entries);
@@ -158,45 +120,13 @@ void afficher_entree() {
 }
 
 
-
-
-db_row* db_select_all(const char *table_name) {
-    db_table *table = db_get_table(table_name);
-    if (table == NULL) {
-        printf("Table '%s' introuvable.\n", table_name);
-        return NULL;
-    }
-
-    db_row *result = malloc(sizeof(db_row));
-    if (result == NULL) {
-        fprintf(stderr, "Erreur d'allocation mémoire.\n");
-        return NULL;
-    }
-
-    result->entries = malloc(table->num_rows * sizeof(db_entry));
-    if (result->entries == NULL) {
-        fprintf(stderr, "Erreur d'allocation mémoire pour les entrées.\n");
-        free(result);
-        return NULL;
-    }
-
-    for (int i = 0; i < table->num_rows; i++) {
-        result->entries[i] = table->rows[i].entries[0];  
-    }
-
-    result->num_entries = table->num_rows; 
-    return result;
-}
-
-
-
-
-db_table* db_get_table(const char *table_name) {
-    for (int i = 0; i < num_tables; i++) {
-        if (strcmp(tables[i].name, table_name) == 0) {
-            return &tables[i];
+void afficher_tables() {
+    if (num_tables == 0) {
+        printf("Aucune table disponible.\n");
+    } else {
+        printf("Tables disponibles :\n");
+        for (int i = 0; i < num_tables; i++) {
+            printf("- %s\n", tables[i].name);
         }
     }
-
-    return NULL;
 }
