@@ -14,6 +14,7 @@ void charger_depuis_txt(const char *fichier);
 void initialiser_db();
 db_row* db_select_all(const char *table_name);
 
+
 extern db_table *tables;
 extern int num_tables;
 
@@ -24,7 +25,6 @@ int main() {
     charger_depuis_txt("database.txt"); 
 
     printf("Bienvenue dans votre base de données personnalisée.\n");
-    printf("Vous pouvez saisir des commandes comme en SQL.\n");
     printf("Exemples de commandes :\n");
     printf("- CREATE TABLE table_name\n");
     printf("- INSERT INTO table_name (key, value)\n");
