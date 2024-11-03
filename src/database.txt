@@ -1,0 +1,5 @@
+TABLE barca
+INSERT INTO barca (1, messi)
+INSERT INTO barca (2, ney)
+TABLE hustle
+INSERT INTO hustle (304, yamal304)

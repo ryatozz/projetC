@@ -5,20 +5,16 @@
 
 tree_node *tree_root = NULL; 
 
-void tree_init() {
-    tree_root = NULL;
-}
-
-void tree_insert(db_entry *entry) {
+void tree_insert(tree_node **root, db_entry *entry) {
     tree_node *node = malloc(sizeof(tree_node));
     node->entry = entry;
     node->left = NULL;
     node->right = NULL;
 
-    if (tree_root == NULL) {
-        tree_root = node;
+    if (*root == NULL) {
+        *root = node;
     } else {
-        tree_insert_node(tree_root, node);
+        tree_insert_node(*root, node);
     }
 }
 
@@ -38,11 +34,11 @@ void tree_insert_node(tree_node *node, tree_node *new_node) {
     }
 }
 
-db_entry *tree_search(char *key) {
-    return tree_search_node(tree_root, key);
+db_entry *tree_search(tree_node *root, const char *key) {
+    return tree_search_node(root, key);
 }
 
-db_entry *tree_search_node(tree_node *node, char *key) {
+db_entry *tree_search_node(tree_node *node, const char *key) {
     if (node == NULL) {
         return NULL;
     } else if (strcmp(key, node->entry->key) == 0) {
@@ -54,9 +50,8 @@ db_entry *tree_search_node(tree_node *node, char *key) {
     }
 }
 
-void tree_free() {
-    tree_free_node(tree_root); 
-    tree_root = NULL;           
+void tree_free(tree_node *root) {
+    tree_free_node(root); 
 }
 
 void tree_free_node(tree_node *node) {
@@ -74,11 +69,11 @@ void tree_free_node(tree_node *node) {
     }
 }
 
-void tree_delete(char *key) {
-    tree_root = tree_delete_node(tree_root, key);
+void tree_delete(tree_node **root, const char *key) {
+    *root = tree_delete_node(*root, key);
 }
 
-tree_node *tree_delete_node(tree_node *node, char *key) {
+tree_node *tree_delete_node(tree_node *node, const char *key) {
     if (node == NULL) {
         return NULL;  
     }
@@ -139,7 +134,7 @@ void tree_load_entry(char *line) {
         entry->key = strdup(key);   
         entry->value = strdup(value); 
 
-        tree_insert(entry);  
+        tree_insert(&tree_root, entry);  
     }
 }
 
