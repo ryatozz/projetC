@@ -3,18 +3,25 @@
 #include <string.h>
 #include "../include/tree.h"
 
-tree_node *tree_root = NULL; 
+int cmp_db_entry(const db_entry *x, const db_entry *y) {
+    int key_cmp = strcmp(x->key, y->key);
+    if (key_cmp != 0) {
+        return key_cmp;
+    }
+    return strcmp(x->value, y->value);
+}
 
 void tree_insert(tree_node **root, db_entry *entry) {
-    tree_node *node = malloc(sizeof(tree_node));
-    node->entry = entry;
-    node->left = NULL;
-    node->right = NULL;
-
     if (*root == NULL) {
-        *root = node;
+        *root = (tree_node *)malloc(sizeof(tree_node));
+        (*root)->entry = entry;
+        (*root)->left = (*root)->right = NULL;
     } else {
-        tree_insert_node(*root, node);
+        if (cmp_db_entry(entry, (*root)->entry) < 0) {
+            tree_insert(&(*root)->left, entry);
+        } else {
+            tree_insert(&(*root)->right, entry);
+        }
     }
 }
 
@@ -99,51 +106,24 @@ tree_node *tree_delete_node(tree_node *node, const char *key) {
             return temp;
         }
 
-        tree_node *successeur = node->right;
-        while (successeur && successeur->left != NULL) {
-            successeur = successeur->left;
+        tree_node *temp = node->right;
+        while (temp->left != NULL) {
+            temp = temp->left;
         }
-
         free(node->entry->key);
-        free(node->entry->value); 
-        node->entry->key = strdup(successeur->entry->key); 
-        node->entry->value = strdup(successeur->entry->value); 
+        free(node->entry->value);
+        node->entry->key = strdup(temp->entry->key);
+        node->entry->value = strdup(temp->entry->value);
 
-        node->right = tree_delete_node(node->right, successeur->entry->key);
+        node->right = tree_delete_node(node->right, temp->entry->key); 
     }
-
-    return node; 
-}
-
-void tree_save_in_order(tree_node *node, FILE *file) {
-    if (node == NULL) {
-        return;
-    }
-
-    tree_save_in_order(node->left, file);
-    fprintf(file, "%s,%s\n", node->entry->key, node->entry->value);
-    tree_save_in_order(node->right, file);
-}
-
-void tree_load_entry(char *line) {
-    char *key = strtok(line, "=");
-    char *value = strtok(NULL, "\n");
-
-    if (key != NULL && value != NULL) {
-        db_entry *entry = malloc(sizeof(db_entry));
-        entry->key = strdup(key);   
-        entry->value = strdup(value); 
-
-        tree_insert(&tree_root, entry);  
-    }
+    return node;
 }
 
 void tree_print_in_order(tree_node *node) {
-    if (node == NULL) {
-        return;
+    if (node != NULL) {
+        tree_print_in_order(node->left);
+        printf("%s: %s\n", node->entry->key, node->entry->value);
+        tree_print_in_order(node->right);
     }
-
-    tree_print_in_order(node->left);  
-    printf("Clé: %s, Valeur: %s\n", node->entry->key, node->entry->value); 
-    tree_print_in_order(node->right); 
 }

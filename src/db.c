@@ -5,7 +5,6 @@
 #include "../include/tree.h"
 #include "../include/saveload.h"
 
-
 db_table *tables = NULL;
 int num_tables = 0;
 
@@ -42,8 +41,8 @@ int is_positive_integer(const char *str) {
 }
 
 int db_insert_into(const char *table_name, const char *key, const char *value) {
-    if (!is_positive_integer(key)) {
-        printf("Erreur : La clé '%s' doit être un entier positif.\n", key);
+    if (!is_positive_integer(key) || strcmp(key, "0") == 0) {
+        printf("Erreur : La clé '%s' doit être un entier positif non nul.\n", key);
         return 0;
     }
 
@@ -53,14 +52,21 @@ int db_insert_into(const char *table_name, const char *key, const char *value) {
         return 0;
     }
 
+    db_entry *existing_entry = tree_search(table->tree_root, key);
+    if (existing_entry != NULL) {
+        printf("Erreur : La clé '%s' existe déjà.\n", key);
+        return 0;
+    }
+
     db_entry *entry = malloc(sizeof(db_entry));
     entry->key = strdup(key);
     entry->value = strdup(value);
 
     tree_insert(&table->tree_root, entry); 
-    insert_row(table, entry); 
+    insert_row(table, key, value); 
     return 1;
 }
+
 
 
 db_table* db_create_table(const char *table_name) {
@@ -87,10 +93,9 @@ db_table* db_create_table(const char *table_name) {
     return &tables[num_tables - 1];
 }
 
-
 void db_update_key(const char *table_name, const char *old_key, const char *new_key) {
-    if (!is_positive_integer(new_key)) {
-        printf("Erreur : La nouvelle clé '%s' doit être un entier positif.\n", new_key);
+    if (!is_positive_integer(new_key) || strcmp(new_key, "0") == 0) {
+        printf("Erreur : La nouvelle clé '%s' doit être un entier positif non nul.\n", new_key);
         return;
     }
 
@@ -111,7 +116,9 @@ void db_update_key(const char *table_name, const char *old_key, const char *new_
 }
 
 
-void insert_row(db_table *table, db_entry *entry) {
+
+
+void insert_row(db_table *table, const char *key, const char *value) {
     table->rows = realloc(table->rows, (table->num_rows + 1) * sizeof(db_row));
     if (!table->rows) {
         perror("Erreur de réallocation de mémoire pour les lignes");
@@ -125,13 +132,10 @@ void insert_row(db_table *table, db_entry *entry) {
         perror("Erreur d'allocation de mémoire pour les entrées de la ligne");
         exit(EXIT_FAILURE);
     }
-    new_row->entries[0] = *entry; 
+
+    new_row->entries[0].key = strdup(key);
+    new_row->entries[0].value = strdup(value); 
 }
-
-
-
-
-
 
 void db_delete_from(const char *table_name, const char *key) {
     db_table *table = db_get_table(table_name);
@@ -168,12 +172,25 @@ void drop_table(const char *table_name) {
     for (int i = table_index; i < num_tables - 1; i++) {
         tables[i] = tables[i + 1];
     }
-
     num_tables--;
-    tables = realloc(tables, num_tables * sizeof(db_table));
-    printf("Table '%s' supprimée avec succès.\n", table_name);
+    tables = realloc(tables, num_tables * sizeof(db_table)); 
+    printf("Table '%s' supprimée.\n", table_name);
 }
 
 void db_close() {
+    for (int i = 0; i < num_tables; i++) {
+        tree_free(tables[i].tree_root);
+        for (int j = 0; j < tables[i].num_rows; j++) {
+            for (int k = 0; k < tables[i].rows[j].num_entries; k++) {
+                free(tables[i].rows[j].entries[k].key);
+                free(tables[i].rows[j].entries[k].value);
+            }
+            free(tables[i].rows[j].entries);
+        }
+        free(tables[i].rows);
+    }
+    free(tables);
+    tables = NULL;
+    num_tables = 0;
     printf("Base de données fermée.\n");
 }

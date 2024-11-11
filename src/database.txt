@@ -1,5 +1,9 @@
-TABLE barca
-INSERT INTO barca (1, messi)
-INSERT INTO barca (2, ney)
-TABLE hustle
-INSERT INTO hustle (304, yamal304)
+CREATE TABLE abc;
+INSERT INTO abc (1, ney);
+INSERT INTO abc (2, yamal);
+CREATE TABLE barca;
+INSERT INTO barca (1, ney);
+INSERT INTO barca (2, messi);
+INSERT INTO barca (3, suarez);
+INSERT INTO barca (4, xavi);
+INSERT INTO barca (5, iniesta);
