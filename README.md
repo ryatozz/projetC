@@ -13,3 +13,20 @@
 - LOAD : Charge la base de données depuis le disque.
 - DROP TABLE table_name : Supprime une table entière.
 - EXIT : Quitte le programme.
+
+
+# Commandes pour lancer le programme 
+
+Se rendre dans le dossier src :
+```cd ProjetC/src```
+
+Nettoyer les fichiers compilés existants (optionnel) :
+```make clean```
+
+Compiler le projet :
+```make```
+
+Lancer le programme :
+```./db```
+
+Interagir avec le programme : Entrez les commandes SQL-like décrites ci-dessus pour interagir avec la base de données.
