@@ -146,12 +146,33 @@ void db_delete_from(const char *table_name, const char *key) {
 
     db_entry *entry = tree_search(table->tree_root, key); 
     if (entry != NULL) {
+
         tree_delete(&table->tree_root, key); 
+
+
+        for (int i = 0; i < table->num_rows; i++) {
+            if (strcmp(table->rows[i].entries[0].key, key) == 0) {
+
+                free(table->rows[i].entries[0].key);
+                free(table->rows[i].entries[0].value);
+                free(table->rows[i].entries);
+
+
+                for (int j = i; j < table->num_rows - 1; j++) {
+                    table->rows[j] = table->rows[j + 1];
+                }
+                table->num_rows--;
+                table->rows = realloc(table->rows, table->num_rows * sizeof(db_row));
+                break;
+            }
+        }
+
         printf("Entrée avec clé '%s' supprimée de la table '%s'.\n", key, table_name);
     } else {
         printf("Clé '%s' non trouvée dans la table '%s'.\n", key, table_name);
     }
 }
+
 
 void drop_table(const char *table_name) {
     int table_index = -1;

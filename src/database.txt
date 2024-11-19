@@ -1,9 +1,10 @@
-CREATE TABLE abc;
-INSERT INTO abc (1, ney);
-INSERT INTO abc (2, yamal);
 CREATE TABLE barca;
 INSERT INTO barca (1, ney);
 INSERT INTO barca (2, messi);
 INSERT INTO barca (3, suarez);
 INSERT INTO barca (4, xavi);
 INSERT INTO barca (5, iniesta);
+INSERT INTO barca (6, lewy);
+CREATE TABLE hustlehard;
+INSERT INTO hustlehard (1, ney);
+INSERT INTO hustlehard (2, lamine);
