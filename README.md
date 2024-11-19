@@ -22,6 +22,9 @@
   Les fichiers **.o** et "db" apparaissent après exécution de la commande *make*.
   Utilisation d'un Makefile pour la gestion de la compilation et du nettoyage.
 
+
+  Version du compilateur : **gcc (Debian 13.1.0-6) 13.1.0**
+
   **projetC** :
     - *include*
         - commands.h
